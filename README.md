@@ -24,10 +24,9 @@ Links clicked inside an already-open browser are handled by that browser and do 
 ```sh
 make test
 make app
-open build/Untracker.app
 ```
 
-For normal use, move `build/Untracker.app` into `/Applications`, quit any older running copy, launch the app once, then choose it as the default browser in System Settings. If Untracker is not listed immediately, close and reopen System Settings after the first launch so macOS refreshes its registered browser list. macOS default-browser and login-item settings are user-controlled, so System Settings may still require approval.
+`make app` builds and signs the app, creates `build/Untracker.dmg`, and opens a Finder window with `Untracker.app` and an Applications shortcut. Drag `Untracker.app` onto Applications, quit any older running copy, launch the installed app once, then choose it as the default browser in System Settings. If Untracker is not listed immediately, close and reopen System Settings after the first launch so macOS refreshes its registered browser list. macOS default-browser and login-item settings are user-controlled, so System Settings may still require approval.
 
 ## Menu Bar Controls
 
@@ -52,7 +51,8 @@ For normal use, move `build/Untracker.app` into `/Applications`, quit any older 
 - Core URL cleanup lives in `Sources/UntrackerCore`.
 - The macOS menu bar and URL-handler app lives in `Sources/UntrackerApp`.
 - The app registers `http` and `https` URL schemes in `Packaging/Info.plist`.
-- The `.app` bundle is assembled by `make app` using `Packaging/Info.plist` and ad-hoc code signing for local testing.
+- The `.app` bundle is assembled by `make bundle` using `Packaging/Info.plist` and ad-hoc code signing for local testing.
+- The drag-to-Applications disk image is assembled and opened by `make app`.
 
 ## Attribution
 

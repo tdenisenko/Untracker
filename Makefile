@@ -1,13 +1,16 @@
 APP_NAME := Untracker
-APP_BUNDLE := build/$(APP_NAME).app
+BUILD_DIR := build
+APP_BUNDLE := $(BUILD_DIR)/$(APP_NAME).app
+INSTALLER_DIR := $(BUILD_DIR)/Install $(APP_NAME)
+DMG := $(BUILD_DIR)/$(APP_NAME).dmg
 RELEASE_BINARY := .build/release/$(APP_NAME)
 
-.PHONY: app build clean run test
+.PHONY: app build bundle clean run test
 
 build:
 	swift build -c release --product $(APP_NAME)
 
-app: build
+bundle: build
 	rm -rf "$(APP_BUNDLE)"
 	mkdir -p "$(APP_BUNDLE)/Contents/MacOS"
 	mkdir -p "$(APP_BUNDLE)/Contents/Resources"
@@ -15,7 +18,15 @@ app: build
 	cp Packaging/Info.plist "$(APP_BUNDLE)/Contents/Info.plist"
 	codesign --force --deep --sign - "$(APP_BUNDLE)"
 
-run: app
+app: bundle
+	rm -rf "$(INSTALLER_DIR)" "$(DMG)"
+	mkdir -p "$(INSTALLER_DIR)"
+	cp -R "$(APP_BUNDLE)" "$(INSTALLER_DIR)/$(APP_NAME).app"
+	ln -s /Applications "$(INSTALLER_DIR)/Applications"
+	hdiutil create -volname "$(APP_NAME)" -srcfolder "$(INSTALLER_DIR)" -ov -format UDZO "$(DMG)"
+	open "$(DMG)"
+
+run: bundle
 	open "$(APP_BUNDLE)"
 
 test:
