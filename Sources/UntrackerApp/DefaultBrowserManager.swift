@@ -24,6 +24,16 @@ final class DefaultBrowserManager {
         NSWorkspace.shared.noteFileSystemChanged(Bundle.main.bundlePath)
     }
 
+    func setAsDefaultBrowser() -> Bool {
+        registerAsBrowserCandidate()
+
+        let bundleIdentifier = ownBundleIdentifier as CFString
+        let httpStatus = LSSetDefaultHandlerForURLScheme("http" as CFString, bundleIdentifier)
+        let httpsStatus = LSSetDefaultHandlerForURLScheme("https" as CFString, bundleIdentifier)
+
+        return httpStatus == noErr && httpsStatus == noErr
+    }
+
     static func defaultBrowserBundleIdentifier(for scheme: String) -> String? {
         guard
             let sampleURL = URL(string: "\(scheme)://example.com"),
@@ -53,29 +63,12 @@ final class DefaultBrowserManager {
         alert.messageText = "Make Untracker the default browser?"
         alert.informativeText = "Untracker needs to be the default browser to clean links opened from other apps. It will forward cleaned links to your selected browser."
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "Open Settings")
+        alert.addButton(withTitle: "Set Default Browser")
         alert.addButton(withTitle: "Not Now")
 
         NSApp.activate(ignoringOtherApps: true)
         if alert.runModal() == .alertFirstButtonReturn {
-            openDefaultBrowserSettings()
-        }
-    }
-
-    func openDefaultBrowserSettings() {
-        let settingsURLs = [
-            URL(string: "x-apple.systempreferences:com.apple.Desktop-Settings.extension"),
-            URL(string: "x-apple.systempreferences:com.apple.preference.general")
-        ].compactMap { $0 }
-
-        for settingsURL in settingsURLs where NSWorkspace.shared.open(settingsURL) {
-            return
-        }
-
-        if let systemSettingsURL = NSWorkspace.shared.urlForApplication(
-            withBundleIdentifier: "com.apple.systempreferences"
-        ) {
-            NSWorkspace.shared.open(systemSettingsURL)
+            _ = setAsDefaultBrowser()
         }
     }
 

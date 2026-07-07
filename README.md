@@ -26,13 +26,13 @@ make test
 make app
 ```
 
-`make app` builds and signs the app, creates `build/Untracker.dmg`, and opens a Finder window with `Untracker.app` and an Applications shortcut. Drag `Untracker.app` onto Applications, quit any older running copy, launch the installed app once, then choose it as the default browser in System Settings. If Untracker is not listed immediately, close and reopen System Settings after the first launch so macOS refreshes its registered browser list. macOS default-browser and login-item settings are user-controlled, so System Settings may still require approval.
+`make app` builds and signs the app, creates `build/Untracker.dmg`, and opens a Finder window with `Untracker.app` and an Applications shortcut. Drag `Untracker.app` onto Applications, quit any older running copy, launch the installed app once, then choose `Set as Default Browser` from the Untracker menu. macOS default-browser and login-item settings are user-controlled, so macOS may still require approval.
 
 ## Menu Bar Controls
 
 - `Clean Links` enables or disables URL cleaning. When disabled, Untracker still forwards clicked links to the selected browser without changing them.
 - `Open Cleaned Links In` lists detected installed browsers automatically.
-- `Set as Default Browser...` opens the relevant macOS System Settings page so you can set Untracker as the default browser.
+- `Set as Default Browser` asks macOS to make Untracker the handler for web links.
 - `Start at Login` controls whether Untracker starts automatically.
 
 ## Privacy Guarantees

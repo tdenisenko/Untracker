@@ -19,8 +19,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private let browserMenuItem = NSMenuItem(title: "Open Cleaned Links In", action: nil, keyEquivalent: "")
     private let browserMenu = NSMenu(title: "Open Cleaned Links In")
     private lazy var defaultBrowserMenuItem = NSMenuItem(
-        title: "Set as Default Browser...",
-        action: #selector(openDefaultBrowserSettings),
+        title: "Set as Default Browser",
+        action: #selector(setAsDefaultBrowser),
         keyEquivalent: ""
     )
     private lazy var startAtLoginMenuItem = NSMenuItem(
@@ -148,7 +148,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             defaultBrowserMenuItem.title = "Default Browser: Untracker"
             defaultBrowserMenuItem.state = .on
         } else {
-            defaultBrowserMenuItem.title = "Set as Default Browser..."
+            defaultBrowserMenuItem.title = "Set as Default Browser"
             defaultBrowserMenuItem.state = .off
         }
     }
@@ -238,8 +238,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         update()
     }
 
-    @objc private func openDefaultBrowserSettings() {
-        defaultBrowserManager.openDefaultBrowserSettings()
+    @objc private func setAsDefaultBrowser() {
+        if !defaultBrowserManager.setAsDefaultBrowser() {
+            showDefaultBrowserError()
+        }
         update()
     }
 
@@ -259,6 +261,14 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         let alert = NSAlert()
         alert.messageText = "Start at Login could not be updated."
         alert.informativeText = message
+        alert.alertStyle = .warning
+        alert.runModal()
+    }
+
+    private func showDefaultBrowserError() {
+        let alert = NSAlert()
+        alert.messageText = "Default browser could not be updated."
+        alert.informativeText = "Make sure Untracker is installed in Applications, then launch the installed app and try again."
         alert.alertStyle = .warning
         alert.runModal()
     }

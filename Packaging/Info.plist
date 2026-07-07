@@ -16,6 +16,8 @@
     <string>Untracker</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
     <key>CFBundleURLTypes</key>
     <array>
         <dict>
@@ -26,14 +28,12 @@
                 <string>http</string>
                 <string>https</string>
             </array>
-            <key>LSHandlerRank</key>
-            <string>Alternate</string>
         </dict>
     </array>
     <key>CFBundleShortVersionString</key>
     <string>1.0.0</string>
     <key>CFBundleVersion</key>
-    <string>2</string>
+    <string>3</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>

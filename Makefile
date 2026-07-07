@@ -16,6 +16,7 @@ bundle: build
 	mkdir -p "$(APP_BUNDLE)/Contents/Resources"
 	cp "$(RELEASE_BINARY)" "$(APP_BUNDLE)/Contents/MacOS/$(APP_NAME)"
 	cp Packaging/Info.plist "$(APP_BUNDLE)/Contents/Info.plist"
+	printf 'APPL????' > "$(APP_BUNDLE)/Contents/PkgInfo"
 	codesign --force --deep --sign - "$(APP_BUNDLE)"
 
 app: bundle
@@ -24,6 +25,7 @@ app: bundle
 	cp -R "$(APP_BUNDLE)" "$(INSTALLER_DIR)/$(APP_NAME).app"
 	ln -s /Applications "$(INSTALLER_DIR)/Applications"
 	hdiutil create -volname "$(APP_NAME)" -srcfolder "$(INSTALLER_DIR)" -ov -format UDZO "$(DMG)"
+	-hdiutil detach "/Volumes/$(APP_NAME)" >/dev/null 2>&1
 	open "$(DMG)"
 
 run: bundle
