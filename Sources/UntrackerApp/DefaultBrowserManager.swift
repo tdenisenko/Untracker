@@ -1,4 +1,5 @@
 import AppKit
+import CoreServices
 
 @MainActor
 final class DefaultBrowserManager {
@@ -19,6 +20,7 @@ final class DefaultBrowserManager {
     }
 
     func registerAsBrowserCandidate() {
+        LSRegisterURL(Bundle.main.bundleURL as CFURL, true)
         NSWorkspace.shared.noteFileSystemChanged(Bundle.main.bundlePath)
     }
 

@@ -4,6 +4,8 @@
 <dict>
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
+    <key>CFBundleDisplayName</key>
+    <string>Untracker</string>
     <key>CFBundleExecutable</key>
     <string>Untracker</string>
     <key>CFBundleIdentifier</key>
@@ -19,19 +21,21 @@
         <dict>
             <key>CFBundleURLName</key>
             <string>Web site URL</string>
-            <key>CFBundleURLRole</key>
-            <string>Viewer</string>
             <key>CFBundleURLSchemes</key>
             <array>
                 <string>http</string>
                 <string>https</string>
             </array>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
         </dict>
     </array>
     <key>CFBundleShortVersionString</key>
     <string>1.0.0</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>2</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>NSHighResolutionCapable</key>

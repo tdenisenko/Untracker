@@ -27,7 +27,7 @@ make app
 open build/Untracker.app
 ```
 
-For normal use, move `build/Untracker.app` into `/Applications`, launch it once, then choose it as the default browser in System Settings. macOS default-browser and login-item settings are user-controlled, so System Settings may still require approval.
+For normal use, move `build/Untracker.app` into `/Applications`, quit any older running copy, launch the app once, then choose it as the default browser in System Settings. If Untracker is not listed immediately, close and reopen System Settings after the first launch so macOS refreshes its registered browser list. macOS default-browser and login-item settings are user-controlled, so System Settings may still require approval.
 
 ## Menu Bar Controls
 
