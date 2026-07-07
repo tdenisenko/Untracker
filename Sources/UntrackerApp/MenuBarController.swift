@@ -130,8 +130,17 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             item.target = self
             item.representedObject = browser.bundleIdentifier
             item.state = browser.bundleIdentifier == selectedBrowser?.bundleIdentifier ? .on : .off
+            item.image = browserIcon(for: browser.applicationURL)
             browserMenu.addItem(item)
         }
+    }
+
+    private func browserIcon(for applicationURL: URL) -> NSImage {
+        let icon = NSWorkspace.shared.icon(forFile: applicationURL.path).copy() as? NSImage ??
+            NSWorkspace.shared.icon(forFile: applicationURL.path)
+        icon.size = NSSize(width: 16, height: 16)
+        icon.isTemplate = false
+        return icon
     }
 
     private func updateDefaultBrowserMenuItem() {
