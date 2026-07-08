@@ -4,6 +4,8 @@ import Carbon
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let settings = AppSettings()
+    private var hasFinishedLaunching = false
+    private var pendingURLs: [URL] = []
     private lazy var loginItemManager = LoginItemManager(settings: settings)
     private lazy var browserRegistry = BrowserRegistry(settings: settings)
     private lazy var defaultBrowserManager = DefaultBrowserManager(settings: settings)
@@ -18,14 +20,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         loginItemManager: loginItemManager
     )
 
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        registerURLHandler()
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureMainMenu()
         NSApp.setActivationPolicy(.accessory)
         loginItemManager.registerIfNeeded()
         defaultBrowserManager.registerAsBrowserCandidate()
         browserRegistry.ensureSelectedBrowser()
-        registerURLHandler()
         menuBarController.install()
+        hasFinishedLaunching = true
+        flushPendingURLs()
         defaultBrowserManager.promptForDefaultBrowserIfNeeded()
     }
 
@@ -69,6 +76,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        linkRouter.route(url)
+        routeWhenReady(url)
+    }
+
+    private func routeWhenReady(_ url: URL) {
+        if hasFinishedLaunching {
+            linkRouter.route(url)
+        } else {
+            pendingURLs.append(url)
+        }
+    }
+
+    private func flushPendingURLs() {
+        let urls = pendingURLs
+        pendingURLs.removeAll()
+        urls.forEach { linkRouter.route($0) }
     }
 }
