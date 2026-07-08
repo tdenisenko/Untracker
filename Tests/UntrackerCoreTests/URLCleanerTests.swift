@@ -130,6 +130,43 @@ final class URLCleanerTests: XCTestCase {
         XCTAssertTrue(resolver.documentRequests.isEmpty)
     }
 
+    func testPreservesSensitiveLoginCallbackURL() async {
+        let resolver = StubRedirectResolver()
+        let cleaner = URLCleaner(redirectResolver: resolver)
+        let input = [
+            "https://account.example.com/login/flow/start?",
+            "return=http://127.0.0.1:22885/login-callback/1",
+            "&returnHttps=https://local.example.net:22885/login-callback/1",
+            "&state=NEMyNUJEMDctMDczMy00RENBLTkyMDMtMTkwMDM1MUY4QzQz",
+            "&flow=login&secure=true&blzcmp=app&utm_source=launcher&ref=client"
+        ].joined()
+
+        let output = await cleaner.clean(input, allowsRemoteRequests: true)
+
+        XCTAssertEqual(output, input)
+        XCTAssertTrue(resolver.redirectRequests.isEmpty)
+        XCTAssertTrue(resolver.documentRequests.isEmpty)
+    }
+
+    func testDoesNotMakeRemoteRequestsForSensitiveShortLinks() async {
+        let input = [
+            "https://share.google/auth?",
+            "state=secret",
+            "&redirect_uri=http://127.0.0.1:22885/callback",
+            "&utm_source=launcher"
+        ].joined()
+        let resolver = StubRedirectResolver(redirects: [
+            input: "https://example.com/article?id=1"
+        ])
+        let cleaner = URLCleaner(redirectResolver: resolver)
+
+        let output = await cleaner.clean(input, allowsRemoteRequests: true)
+
+        XCTAssertEqual(output, input)
+        XCTAssertTrue(resolver.redirectRequests.isEmpty)
+        XCTAssertTrue(resolver.documentRequests.isEmpty)
+    }
+
     func testRemovesTrackingParametersBeforeRemoteRedirectRequest() async {
         let resolver = StubRedirectResolver(redirects: [
             "https://share.google/abc?id=1": "https://example.com/article?utm_source=remote&id=2"
@@ -166,6 +203,7 @@ final class URLCleanerTests: XCTestCase {
         XCTAssertFalse(URLCleaner.allowsRemoteRequests(for: "share.google/abc"))
         XCTAssertFalse(URLCleaner.allowsRemoteRequests(for: "http://share.google/abc"))
         XCTAssertFalse(URLCleaner.allowsRemoteRequests(for: "https://user:pass@share.google/abc"))
+        XCTAssertFalse(URLCleaner.allowsRemoteRequests(for: "https://share.google/auth?state=secret&redirect_uri=http://127.0.0.1:22885/callback"))
         XCTAssertFalse(URLCleaner.allowsRemoteRequests(for: "not a url"))
     }
 
@@ -174,16 +212,21 @@ final class URLCleanerTests: XCTestCase {
 
         let httpURL = URL(string: "http://share.google/abc")!
         let credentialsURL = URL(string: "https://user:pass@share.google/abc")!
+        let sensitiveURL = URL(string: "https://share.google/auth?state=secret&redirect_uri=http://127.0.0.1:22885/callback")!
 
         let httpRedirect = await resolver.redirectTarget(for: httpURL)
         let httpDocument = await resolver.documentBody(for: httpURL)
         let credentialsRedirect = await resolver.redirectTarget(for: credentialsURL)
         let credentialsDocument = await resolver.documentBody(for: credentialsURL)
+        let sensitiveRedirect = await resolver.redirectTarget(for: sensitiveURL)
+        let sensitiveDocument = await resolver.documentBody(for: sensitiveURL)
 
         XCTAssertNil(httpRedirect)
         XCTAssertNil(httpDocument)
         XCTAssertNil(credentialsRedirect)
         XCTAssertNil(credentialsDocument)
+        XCTAssertNil(sensitiveRedirect)
+        XCTAssertNil(sensitiveDocument)
     }
 
     func testExpandsShareGoogleComRedirects() async {

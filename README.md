@@ -42,6 +42,7 @@ make app
 - URL cleaning is local unless the clicked URL is exactly one standalone HTTPS URL with no embedded username or password.
 - Remote redirect expansion is opt-in inside the code and only runs after that standalone-HTTPS-URL check passes.
 - HTTP URLs, scheme-less URLs, non-web URLs, and URLs containing credentials never trigger remote redirect expansion.
+- Login, authentication, challenge, return, redirect, and local callback URLs are forwarded unchanged and never trigger remote redirect expansion.
 - Known tracking parameters are removed before a remote redirect request is made, so the app does not forward removable trackers to short-link hosts.
 - Redirect requests use an ephemeral `URLSession` with cookies, credential storage, and URL cache disabled. The app does not attach app state or stored browser cookies to those requests.
 - When a standalone HTTPS short link is resolved, the target server still receives the normal network information required for that request, such as the URL being resolved, IP-level connection metadata, and the app's `User-Agent`.

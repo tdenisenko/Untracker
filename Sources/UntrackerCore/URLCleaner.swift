@@ -112,6 +112,10 @@ public struct URLCleaner {
     }
 
     public func clean(_ text: String, allowsRemoteRequests: Bool = false) async -> String {
+        if let standaloneURL = Self.standaloneWebURL(in: text), shouldPreserveSensitiveURL(standaloneURL) {
+            return text
+        }
+
         let detections = Self.detectURLs(in: text)
         guard !detections.isEmpty else {
             return text
@@ -120,6 +124,10 @@ public struct URLCleaner {
         let canMakeRemoteRequests = allowsRemoteRequests && Self.allowsRemoteRequests(for: text)
         var output = text
         for detection in detections.reversed() {
+            if shouldPreserveSensitiveURL(detection.url) {
+                continue
+            }
+
             let cleanedURL = await clean(
                 url: detection.url,
                 allowsRemoteRequests: canMakeRemoteRequests
@@ -136,6 +144,10 @@ public struct URLCleaner {
     }
 
     func clean(url: URL, allowsRemoteRequests: Bool = false) async -> URL {
+        if shouldPreserveSensitiveURL(url) {
+            return url
+        }
+
         var url = url.standardized
 
         for _ in 0..<maxRedirects {
@@ -157,7 +169,22 @@ public struct URLCleaner {
             return false
         }
 
-        return isSafeRemoteRequestURL(detectedURL.url)
+        return !shouldPreserveSensitiveURL(detectedURL.url) && isSafeRemoteRequestURL(detectedURL.url)
+    }
+
+    private static func standaloneWebURL(in text: String) -> URL? {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard
+            !trimmedText.isEmpty,
+            let url = URL(string: trimmedText),
+            let scheme = url.scheme?.lowercased(),
+            scheme == "http" || scheme == "https",
+            url.host != nil
+        else {
+            return nil
+        }
+
+        return url
     }
 
     private static func standaloneURL(in text: String) -> DetectedURL? {
@@ -185,9 +212,16 @@ public struct URLCleaner {
             url = redirected.standardized
         }
 
+        if shouldPreserveSensitiveURL(url) {
+            return url
+        }
+
         url = removingKnownTrackingParameters(from: url)
         if allowsRemoteRequests {
             url = await expandedCommonShortLink(from: url)
+        }
+        if shouldPreserveSensitiveURL(url) {
+            return url
         }
         url = removingKnownTrackingParameters(from: url)
 
@@ -486,12 +520,92 @@ private func isSafeRemoteRequestURL(_ url: URL) -> Bool {
         scheme == "https",
         components.host != nil,
         components.user == nil,
-        components.password == nil
+        components.password == nil,
+        !shouldPreserveSensitiveURL(url)
     else {
         return false
     }
 
     return true
+}
+
+private func shouldPreserveSensitiveURL(_ url: URL) -> Bool {
+    guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+        return false
+    }
+
+    if components.user != nil || components.password != nil {
+        return true
+    }
+
+    let items = decodedQueryItems(from: components.percentEncodedQuery)
+    guard !items.isEmpty else {
+        return false
+    }
+
+    return items.contains { isSensitiveQueryItem($0) }
+}
+
+private func isSensitiveQueryItem(_ item: (name: String, value: String)) -> Bool {
+    let normalizedName = item.name
+        .replacingOccurrences(of: "-", with: "_")
+        .lowercased()
+
+    if normalizedName.matchesFullRegex(sensitiveQueryNamePattern) {
+        return true
+    }
+
+    if normalizedName.matchesFullRegex(callbackQueryNamePattern) {
+        return true
+    }
+
+    if looksLikeLocalCallbackURL(item.value) {
+        return true
+    }
+
+    return false
+}
+
+private let sensitiveQueryNamePattern = [
+    "access_token",
+    "auth(_?token)?",
+    "challenge",
+    "code",
+    "id_token",
+    "jwt",
+    "nonce",
+    "refresh_token",
+    "saml(response|request)",
+    "session(_?id)?",
+    "state",
+    "ticket",
+    "token"
+].joined(separator: "|")
+
+private let callbackQueryNamePattern = [
+    "callback(_?url|_?uri)?",
+    "continue",
+    "flow",
+    "next",
+    "redirect(_?url|_?uri)?",
+    "return(_?to|_?url|_?uri|https)?"
+].joined(separator: "|")
+
+private func looksLikeLocalCallbackURL(_ value: String) -> Bool {
+    guard
+        let callbackURL = URL(string: value),
+        let scheme = callbackURL.scheme?.lowercased(),
+        scheme == "http" || scheme == "https",
+        let host = callbackURL.host?.lowercased()
+    else {
+        return false
+    }
+
+    return host == "localhost" ||
+        host.hasSuffix(".localhost") ||
+        host == "127.0.0.1" ||
+        host == "::1" ||
+        host.hasPrefix("127.")
 }
 
 private func settingEncodedQuery(_ encodedQuery: String?, in url: URL) -> URL {
