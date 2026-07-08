@@ -8,6 +8,10 @@
     <string>Untracker</string>
     <key>CFBundleExecutable</key>
     <string>Untracker</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundleIconName</key>
+    <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
     <string>com.tdenisenko.Untracker</string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -33,7 +37,7 @@
     <key>CFBundleShortVersionString</key>
     <string>1.0.0</string>
     <key>CFBundleVersion</key>
-    <string>3</string>
+    <string>4</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>
