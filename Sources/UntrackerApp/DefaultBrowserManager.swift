@@ -24,14 +24,16 @@ final class DefaultBrowserManager {
         NSWorkspace.shared.noteFileSystemChanged(Bundle.main.bundlePath)
     }
 
-    func setAsDefaultBrowser() -> Bool {
+    func requestUntrackerAsDefaultBrowser() {
         registerAsBrowserCandidate()
+        requestDefaultBrowser(bundleIdentifier: ownBundleIdentifier)
+    }
 
-        let bundleIdentifier = ownBundleIdentifier as CFString
-        let httpStatus = LSSetDefaultHandlerForURLScheme("http" as CFString, bundleIdentifier)
-        let httpsStatus = LSSetDefaultHandlerForURLScheme("https" as CFString, bundleIdentifier)
+    func requestDefaultBrowser(bundleIdentifier: String) {
+        let handler = bundleIdentifier as CFString
 
-        return httpStatus == noErr && httpsStatus == noErr
+        LSSetDefaultHandlerForURLScheme("http" as CFString, handler)
+        LSSetDefaultHandlerForURLScheme("https" as CFString, handler)
     }
 
     static func defaultBrowserBundleIdentifier(for scheme: String) -> String? {
@@ -68,7 +70,7 @@ final class DefaultBrowserManager {
 
         NSApp.activate(ignoringOtherApps: true)
         if alert.runModal() == .alertFirstButtonReturn {
-            _ = setAsDefaultBrowser()
+            requestUntrackerAsDefaultBrowser()
         }
     }
 

@@ -8,7 +8,7 @@ Untracker only receives web URLs opened through macOS's default browser handler.
 
 1. Install and launch Untracker.
 2. Choose the browser that should open cleaned links from the Untracker menu.
-3. Set Untracker as the default browser in macOS System Settings.
+3. Choose `Set as Default Browser` from the Untracker menu.
 4. Click links in apps such as Mail, Messages, Slack, Notes, PDFs, Terminal, Finder, or Spotlight.
 5. Untracker cleans the URL and forwards it to the selected browser.
 
@@ -32,7 +32,7 @@ make app
 
 - `Clean Links` enables or disables URL cleaning. When disabled, Untracker still forwards clicked links to the selected browser without changing them.
 - `Open Cleaned Links In` lists detected installed browsers automatically.
-- `Set as Default Browser` asks macOS to make Untracker the handler for web links.
+- `Set as Default Browser` asks macOS to make Untracker the handler for web links. When Untracker is already the default browser, selecting the checked item asks macOS to restore the browser selected in `Open Cleaned Links In`.
 - `Start at Login` controls whether Untracker starts automatically.
 
 ## Privacy Guarantees

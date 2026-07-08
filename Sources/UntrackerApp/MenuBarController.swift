@@ -20,7 +20,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private let browserMenu = NSMenu(title: "Open Cleaned Links In")
     private lazy var defaultBrowserMenuItem = NSMenuItem(
         title: "Set as Default Browser",
-        action: #selector(setAsDefaultBrowser),
+        action: #selector(toggleDefaultBrowser),
         keyEquivalent: ""
     )
     private lazy var startAtLoginMenuItem = NSMenuItem(
@@ -238,11 +238,13 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         update()
     }
 
-    @objc private func setAsDefaultBrowser() {
-        if !defaultBrowserManager.setAsDefaultBrowser() {
-            showDefaultBrowserError()
+    @objc private func toggleDefaultBrowser() {
+        if defaultBrowserManager.isUntrackerDefaultBrowser {
+            restoreSelectedBrowserAsDefault()
+        } else {
+            defaultBrowserManager.requestUntrackerAsDefaultBrowser()
         }
-        update()
+        updateAfterDefaultBrowserRequest()
     }
 
     @objc private func toggleStartAtLogin() {
@@ -265,10 +267,28 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         alert.runModal()
     }
 
-    private func showDefaultBrowserError() {
+    private func restoreSelectedBrowserAsDefault() {
+        guard let browser = browserRegistry.ensureSelectedBrowser() else {
+            showDefaultBrowserRestoreError()
+            return
+        }
+
+        defaultBrowserManager.requestDefaultBrowser(bundleIdentifier: browser.bundleIdentifier)
+    }
+
+    private func updateAfterDefaultBrowserRequest() {
+        update()
+
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            self?.update()
+        }
+    }
+
+    private func showDefaultBrowserRestoreError() {
         let alert = NSAlert()
-        alert.messageText = "Default browser could not be updated."
-        alert.informativeText = "Make sure Untracker is installed in Applications, then launch the installed app and try again."
+        alert.messageText = "Default browser could not be restored."
+        alert.informativeText = "Choose a browser from Open Cleaned Links In, then try again."
         alert.alertStyle = .warning
         alert.runModal()
     }
