@@ -19,14 +19,35 @@ Links clicked inside an already-open browser are handled by that browser and do 
 - macOS 13 or later
 - Xcode command line tools with Swift Package Manager
 
-## Build and Run
+## Install and Run From Source
 
 ```sh
+git clone git@github.com:tdenisenko/Untracker.git
+cd Untracker
 make test
 make app
 ```
 
-`make app` builds and signs the app, creates `build/Untracker.dmg`, and opens a polished drag-to-Applications installer window. Drag `Untracker.app` onto Applications, quit any older running copy, launch the installed app once, then choose `Set as Default Browser` from the Untracker menu. macOS default-browser and login-item settings are user-controlled, so macOS may still require approval.
+`make app` builds and signs the app, creates `build/Untracker.dmg`, and opens the installer window automatically.
+
+Install the app from the window that opens:
+
+1. Quit any older running copy of Untracker from the menu bar.
+2. Drag `Untracker.app` onto the `Applications` icon in the installer window.
+3. If Finder asks whether to replace an existing copy, choose `Replace`.
+4. Eject the `Untracker` installer volume.
+5. Open the installed app from `/Applications/Untracker.app`, not from the build folder or installer volume.
+6. If macOS asks for confirmation because the app was built locally, choose `Open`.
+
+Finish setup from the Untracker menu bar icon:
+
+1. Choose `Open Cleaned Links In`, then select the browser that should open cleaned links.
+2. Leave `Clean Links` enabled.
+3. Choose `Set as Default Browser`.
+4. Approve any macOS prompt to make Untracker the default browser.
+5. Keep Untracker running in the menu bar. `Start at Login` is enabled by default.
+
+After setup, links opened through macOS's default browser handler go to Untracker first, then Untracker forwards the cleaned URL to the selected browser. macOS default-browser and login-item settings are user-controlled, so macOS may still require approval.
 
 ## Menu Bar Controls
 
