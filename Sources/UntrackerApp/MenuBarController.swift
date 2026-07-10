@@ -2,9 +2,6 @@ import AppKit
 
 @MainActor
 final class MenuBarController: NSObject, NSMenuDelegate {
-    private static let enabledStatusImageName = "StatusEnabled"
-    private static let disabledStatusImageName = "StatusDisabled"
-
     private let settings: AppSettings
     private let browserRegistry: BrowserRegistry
     private let defaultBrowserManager: DefaultBrowserManager
@@ -67,6 +64,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         }
 
         button.imagePosition = .imageOnly
+        button.imageScaling = .scaleProportionallyUpOrDown
         button.toolTip = "Untracker"
     }
 
@@ -196,27 +194,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
         button.contentTintColor = nil
         button.attributedTitle = NSAttributedString()
-        button.image = Self.statusImage(isOperational: isOperational)
+        button.image = StatusIconRenderer.image(
+            isOperational: isOperational,
+            size: NSStatusBar.system.thickness
+        )
         button.title = ""
-    }
-
-    private static func statusImage(isOperational: Bool) -> NSImage? {
-        let name = isOperational ? enabledStatusImageName : disabledStatusImageName
-        if let imageURL = Bundle.main.url(forResource: name, withExtension: "png"),
-           let image = NSImage(contentsOf: imageURL) {
-            image.size = NSSize(width: 18, height: 18)
-            image.isTemplate = false
-            image.accessibilityDescription = "Untracker"
-            return image
-        }
-
-        let color: NSColor = isOperational ? .systemGreen : .systemRed
-        let image = NSImage(
-            systemSymbolName: "link.badge.minus",
-            accessibilityDescription: "Untracker"
-        )?.withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [color]))
-        image?.isTemplate = false
-        return image
     }
 
     private func startDefaultBrowserMonitor() {

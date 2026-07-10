@@ -3,8 +3,6 @@ BUILD_DIR := build
 APP_BUNDLE := $(BUILD_DIR)/$(APP_NAME).app
 DMG := $(BUILD_DIR)/$(APP_NAME).dmg
 APP_ICONSET := $(BUILD_DIR)/AppIcon.iconset
-STATUS_ENABLED_ICON := $(BUILD_DIR)/StatusEnabled.png
-STATUS_DISABLED_ICON := $(BUILD_DIR)/StatusDisabled.png
 DMG_BACKGROUND := $(BUILD_DIR)/dmg-background.png
 RELEASE_BINARY := .build/release/$(APP_NAME)
 
@@ -20,8 +18,6 @@ bundle: build
 	swift Packaging/GenerateInstallerAssets.swift "$(APP_ICONSET)" "$(DMG_BACKGROUND)"
 	cp "$(RELEASE_BINARY)" "$(APP_BUNDLE)/Contents/MacOS/$(APP_NAME)"
 	cp Packaging/Info.plist "$(APP_BUNDLE)/Contents/Info.plist"
-	cp "$(STATUS_ENABLED_ICON)" "$(APP_BUNDLE)/Contents/Resources/StatusEnabled.png"
-	cp "$(STATUS_DISABLED_ICON)" "$(APP_BUNDLE)/Contents/Resources/StatusDisabled.png"
 	iconutil -c icns "$(APP_ICONSET)" -o "$(APP_BUNDLE)/Contents/Resources/AppIcon.icns"
 	printf 'APPL????' > "$(APP_BUNDLE)/Contents/PkgInfo"
 	codesign --force --deep --sign - "$(APP_BUNDLE)"

@@ -185,13 +185,4 @@ for spec in iconSpecs {
     )
 }
 
-let resourceURL = iconsetURL.deletingLastPathComponent()
-try writePNG(
-    makeIcon(size: 36, accentColor: .systemGreen),
-    to: resourceURL.appendingPathComponent("StatusEnabled.png")
-)
-try writePNG(
-    makeIcon(size: 36, accentColor: .systemRed),
-    to: resourceURL.appendingPathComponent("StatusDisabled.png")
-)
 try writePNG(makeBackground(), to: backgroundURL)
