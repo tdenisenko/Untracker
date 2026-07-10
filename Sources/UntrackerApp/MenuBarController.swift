@@ -2,13 +2,16 @@ import AppKit
 
 @MainActor
 final class MenuBarController: NSObject, NSMenuDelegate {
-    private static let statusSymbolName = "link.badge.minus"
+    private static let enabledStatusImageName = "StatusEnabled"
+    private static let disabledStatusImageName = "StatusDisabled"
 
     private let settings: AppSettings
     private let browserRegistry: BrowserRegistry
     private let defaultBrowserManager: DefaultBrowserManager
     private let loginItemManager: LoginItemManager
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    private var defaultBrowserMonitor: Timer?
+    private var lastKnownDefaultBrowserState: Bool?
 
     private let statusMenuItem = NSMenuItem(title: "Untracker", action: nil, keyEquivalent: "")
     private lazy var linkCleaningMenuItem = NSMenuItem(
@@ -51,6 +54,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         configureStatusItem()
         configureMenu()
         update()
+        startDefaultBrowserMonitor()
     }
 
     func menuWillOpen(_ menu: NSMenu) {
@@ -94,16 +98,23 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
 
     private func update() {
+        let isDefaultBrowser = defaultBrowserManager.isUntrackerDefaultBrowser
+        lastKnownDefaultBrowserState = isDefaultBrowser
         linkCleaningMenuItem.state = settings.isLinkCleaningEnabled ? .on : .off
         updateBrowserMenu()
-        updateDefaultBrowserMenuItem()
+        updateDefaultBrowserMenuItem(isDefaultBrowser: isDefaultBrowser)
         updateStartAtLoginMenuItem()
-        updateStatusImage(color: settings.isLinkCleaningEnabled ? .systemGreen : .systemRed)
+        updateOperationalStatus(isDefaultBrowser: isDefaultBrowser)
+    }
 
-        if settings.isLinkCleaningEnabled {
-            statusMenuItem.title = defaultBrowserManager.isUntrackerDefaultBrowser
-                ? "Untracker: Link Cleaning Enabled"
-                : "Untracker: Enabled (Not Default Browser)"
+    private func updateOperationalStatus(isDefaultBrowser: Bool) {
+        let isOperational = settings.isLinkCleaningEnabled && isDefaultBrowser
+        updateStatusImage(isOperational: isOperational)
+
+        if isOperational {
+            statusMenuItem.title = "Untracker: Link Cleaning Enabled"
+        } else if settings.isLinkCleaningEnabled {
+            statusMenuItem.title = "Untracker: Link Cleaning Inactive (Not Default Browser)"
         } else {
             statusMenuItem.title = "Untracker: Link Cleaning Disabled"
         }
@@ -143,8 +154,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         return icon
     }
 
-    private func updateDefaultBrowserMenuItem() {
-        if defaultBrowserManager.isUntrackerDefaultBrowser {
+    private func updateDefaultBrowserMenuItem(isDefaultBrowser: Bool) {
+        if isDefaultBrowser {
             defaultBrowserMenuItem.title = "Default Browser: Untracker"
             defaultBrowserMenuItem.state = .on
         } else {
@@ -178,43 +189,56 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         }
     }
 
-    private func updateStatusImage(color: NSColor) {
+    private func updateStatusImage(isOperational: Bool) {
         guard let button = statusItem.button else {
             return
         }
 
         button.contentTintColor = nil
         button.attributedTitle = NSAttributedString()
-        if let image = Self.statusImage(color: color) {
-            button.image = image
-            button.title = ""
-        } else {
-            button.image = nil
-            button.attributedTitle = NSAttributedString(
-                string: "U",
-                attributes: [
-                    .foregroundColor: color,
-                    .font: NSFont.monospacedSystemFont(ofSize: 14, weight: .semibold)
-                ]
-            )
-        }
+        button.image = Self.statusImage(isOperational: isOperational)
+        button.title = ""
     }
 
-    private static func statusImage(color: NSColor) -> NSImage? {
-        guard
-            let symbolImage = NSImage(
-                systemSymbolName: statusSymbolName,
-                accessibilityDescription: "Untracker"
-            ),
-            let configuredImage = symbolImage.withSymbolConfiguration(
-                NSImage.SymbolConfiguration(paletteColors: [color])
-            )
-        else {
-            return nil
+    private static func statusImage(isOperational: Bool) -> NSImage? {
+        let name = isOperational ? enabledStatusImageName : disabledStatusImageName
+        if let imageURL = Bundle.main.url(forResource: name, withExtension: "png"),
+           let image = NSImage(contentsOf: imageURL) {
+            image.size = NSSize(width: 18, height: 18)
+            image.isTemplate = false
+            image.accessibilityDescription = "Untracker"
+            return image
         }
 
-        configuredImage.isTemplate = false
-        return configuredImage
+        let color: NSColor = isOperational ? .systemGreen : .systemRed
+        let image = NSImage(
+            systemSymbolName: "link.badge.minus",
+            accessibilityDescription: "Untracker"
+        )?.withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [color]))
+        image?.isTemplate = false
+        return image
+    }
+
+    private func startDefaultBrowserMonitor() {
+        let timer = Timer(timeInterval: 2, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.refreshDefaultBrowserState()
+            }
+        }
+        timer.tolerance = 0.5
+        RunLoop.main.add(timer, forMode: .common)
+        defaultBrowserMonitor = timer
+    }
+
+    private func refreshDefaultBrowserState() {
+        let isDefaultBrowser = defaultBrowserManager.isUntrackerDefaultBrowser
+        guard isDefaultBrowser != lastKnownDefaultBrowserState else {
+            return
+        }
+
+        lastKnownDefaultBrowserState = isDefaultBrowser
+        updateDefaultBrowserMenuItem(isDefaultBrowser: isDefaultBrowser)
+        updateOperationalStatus(isDefaultBrowser: isDefaultBrowser)
     }
 
     @objc private func toggleLinkCleaning() {

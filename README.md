@@ -54,6 +54,7 @@ After setup, links opened through macOS's default browser handler go to Untracke
 - `Clean Links` enables or disables URL cleaning. When disabled, Untracker still forwards clicked links to the selected browser without changing them.
 - `Open Cleaned Links In` lists detected installed browsers automatically.
 - `Set as Default Browser` asks macOS to make Untracker the handler for web links. When Untracker is already the default browser, selecting the checked item asks macOS to restore the browser selected in `Open Cleaned Links In`.
+- The menu bar uses the application logo with green accents only while link cleaning is enabled and Untracker is the default browser. It uses red accents whenever cleaning is disabled or another default browser is selected.
 - `Start at Login` controls whether Untracker starts automatically.
 
 ## Privacy Guarantees
