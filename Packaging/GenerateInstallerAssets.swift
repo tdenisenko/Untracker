@@ -46,7 +46,7 @@ private func drawRoundedRect(
     }
 }
 
-private func makeIcon(size: Int) -> NSImage {
+private func makeIcon(size: Int, accentColor: NSColor) -> NSImage {
     let side = CGFloat(size)
     let image = NSImage(size: NSSize(width: side, height: side))
     image.lockFocus()
@@ -85,11 +85,11 @@ private func makeIcon(size: Int) -> NSImage {
     slash.line(to: NSPoint(x: side * 0.70, y: side * 0.70))
     slash.lineWidth = side * 0.065
     slash.lineCapStyle = .round
-    NSColor(calibratedRed: 0.28, green: 0.84, blue: 0.48, alpha: 1).setStroke()
+    accentColor.setStroke()
     slash.stroke()
 
     let badgeRect = NSRect(x: side * 0.63, y: side * 0.16, width: side * 0.22, height: side * 0.22)
-    NSColor(calibratedRed: 0.28, green: 0.84, blue: 0.48, alpha: 1).setFill()
+    accentColor.setFill()
     NSBezierPath(ovalIn: badgeRect).fill()
 
     NSColor.white.setStroke()
@@ -179,7 +179,19 @@ let iconSpecs: [(file: String, pixels: Int)] = [
 ]
 
 for spec in iconSpecs {
-    try writePNG(makeIcon(size: spec.pixels), to: iconsetURL.appendingPathComponent(spec.file))
+    try writePNG(
+        makeIcon(size: spec.pixels, accentColor: .systemGreen),
+        to: iconsetURL.appendingPathComponent(spec.file)
+    )
 }
 
+let resourceURL = iconsetURL.deletingLastPathComponent()
+try writePNG(
+    makeIcon(size: 36, accentColor: .systemGreen),
+    to: resourceURL.appendingPathComponent("StatusEnabled.png")
+)
+try writePNG(
+    makeIcon(size: 36, accentColor: .systemRed),
+    to: resourceURL.appendingPathComponent("StatusDisabled.png")
+)
 try writePNG(makeBackground(), to: backgroundURL)
