@@ -67,6 +67,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         }
 
         button.imagePosition = .imageOnly
+        button.imageScaling = .scaleProportionallyUpOrDown
         button.toolTip = "Untracker"
     }
 
@@ -201,10 +202,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
 
     private static func statusImage(isOperational: Bool) -> NSImage? {
+        let side = NSStatusBar.system.thickness
+        let imageSize = NSSize(width: side, height: side)
         let name = isOperational ? enabledStatusImageName : disabledStatusImageName
         if let imageURL = Bundle.main.url(forResource: name, withExtension: "png"),
            let image = NSImage(contentsOf: imageURL) {
-            image.size = NSSize(width: 18, height: 18)
+            image.size = imageSize
             image.isTemplate = false
             image.accessibilityDescription = "Untracker"
             return image
@@ -215,6 +218,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             systemSymbolName: "link.badge.minus",
             accessibilityDescription: "Untracker"
         )?.withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [color]))
+        image?.size = imageSize
         image?.isTemplate = false
         return image
     }
