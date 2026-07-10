@@ -4,6 +4,7 @@ import Carbon
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let settings = AppSettings()
+    private let focusPreserver = ApplicationFocusPreserver()
     private var hasFinishedLaunching = false
     private var pendingURLs: [URL] = []
     private lazy var loginItemManager = LoginItemManager(settings: settings)
@@ -76,6 +77,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        focusPreserver.restorePreviousApplicationIfNeeded()
         routeWhenReady(url)
     }
 
